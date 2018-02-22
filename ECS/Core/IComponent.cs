@@ -1,4 +1,4 @@
-﻿namespace ECS {
-    public interface IComponent {
-    }
+﻿namespace ECS
+{
+    public interface IComponent { }
 }

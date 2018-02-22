@@ -1,19 +1,19 @@
 ﻿using ECS;
 
-namespace ECSExample.Beginner {
-    [DebugSystemGroup("Update")]
-    class UpdateFloatSystem : ComponentSystem {
 
-        [InjectDependency]
-        private UnityEntityManager entityManager;
-        
-        [InjectTuple]
-        private ComponentArray<FloatComponent> floats;
-        public override void OnUpdate() {
-            float sum = 0;
-            for (int i = 0; i < floats.Length; i++) {
-                entityManager.SetComponent(floats.GetEntity(i), new FloatComponent(floats[i].value + 1));
-            }
+
+namespace ECSExample.Beginner
+{
+    [DebugSystemGroup("Update")]
+    class UpdateFloatSystem : ComponentSystem
+    {
+        [InjectDependency] UnityEntityManager _entityManager;
+
+        [InjectTuple] ComponentArray<FloatComponent> _floats;
+
+        public override void OnUpdate()
+        {
+            for (int i = 0; i < _floats.Length; i++) _entityManager.SetComponent(_floats.GetEntity(i), new FloatComponent(_floats[i].value + 1));
         }
     }
 }
