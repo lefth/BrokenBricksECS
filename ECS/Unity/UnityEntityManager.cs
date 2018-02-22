@@ -1,42 +1,34 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 using UnityEngine;
+#if (UNITY_EDITOR && ECS_DEBUG)
+using System.Collections.Generic;
+#endif
 
-namespace ECS {
-    public class InstantiateGameObjectException : Exception {
-        public InstantiateGameObjectException(string message) : base(message) {
-        }
+
+
+namespace ECS
+{
+    public class InstantiateGameObjectException : Exception
+    {
+        public InstantiateGameObjectException(string message) : base(message) { }
     }
 
 
     [InjectableDependency(LifeTime.Singleton)]
-    public partial class UnityEntityManager : EntityManager {
+    public partial class UnityEntityManager : EntityManager
+    {
         /// <summary>
         /// Instantiates only Entities with there Components from Prefab! 
         /// Wont Instantiate GameObject itself!
         /// Use InstantiateWithGameObject instead.
         /// </summary>
-        public void Instantiate(GameObject prefab, NativeArray<Entity> entityArray) {
+        public void Instantiate(GameObject prefab, NativeArray<Entity> entityArray)
+        {
             var gameObjectEntity = prefab.GetComponent<GameObjectEntity>();
-            if (!gameObjectEntity) {
-                throw new Exception(prefab.name + " cant be instantiate without " + typeof(GameObjectEntity).Name + " component");
-            }
-
-            ComponentWrapper[] components = gameObjectEntity.GetComponents();
-
-            for (int i = 0; i < entityArray.Length; i++) {
-                entityArray[i] = CreateEntity();
-            }
-
-            for (int i = 0; i < components.Length; i++) {
-                for (int j = 0; j < entityArray.Length; j++) {
-                    components[i].AddComponentToEntity(entityArray[j], this);
-                }
-            }
+            if (!gameObjectEntity) throw new Exception(prefab.name + " cant be instantiate without " + typeof(GameObjectEntity).Name + " component");
+            var components = gameObjectEntity.GetComponents();
+            for (var i = 0; i < entityArray.Length; i++) entityArray[i] = CreateEntity();
+            for (var i = 0; i < components.Length; i++) for (int j = 0; j < entityArray.Length; j++) components[i].AddComponentToEntity(entityArray[j], this);
         }
 
         /// <summary>
@@ -44,25 +36,23 @@ namespace ECS {
         /// Wont Instantiate GameObject itself!
         /// Use InstantiateWithGameObject instead.
         /// </summary>
-        public Entity Instantiate(GameObject prefab) {
+        public Entity Instantiate(GameObject prefab)
+        {
             var gameObjectEntity = prefab.GetComponent<GameObjectEntity>();
-            if (!gameObjectEntity) {
-                throw new Exception(prefab.name + " cant be instantiate without " + typeof(GameObjectEntity).Name + " component");
-            }
-            Entity entity = CreateEntity();
-            ComponentWrapper[] components = gameObjectEntity.GetComponents();
-            for (int i = 0; i < components.Length; i++) {
-                components[i].AddComponentToEntity(entity, this);
-            }
+            if (!gameObjectEntity) throw new Exception(prefab.name + " cant be instantiate without " + typeof(GameObjectEntity).Name + " component");
+            var entity = CreateEntity();
+            var components = gameObjectEntity.GetComponents();
+            for (int i = 0; i < components.Length; i++) components[i].AddComponentToEntity(entity, this);
             return entity;
         }
 
         /// <summary>
         /// Instantiates Entity and GameObject with it's Components from Prefab!
         /// </summary>
-        public GameObject InstantiateWithGameObject(GameObject prefab) {
-            Entity entity = CreateEntity();
-            GameObject gameObject = UnityEngine.Object.Instantiate(prefab);
+        public GameObject InstantiateWithGameObject(GameObject prefab)
+        {
+            var entity = CreateEntity();
+            var gameObject = UnityEngine.Object.Instantiate(prefab);
             gameObject.GetComponent<GameObjectEntity>().SetEntity(entity, this);
             return gameObject;
         }
@@ -70,9 +60,10 @@ namespace ECS {
         /// <summary>
         /// Instantiates Entity and GameObject with it's Components from Prefab!
         /// </summary>
-        public GameObject InstantiateWithGameObject(GameObject prefab, Transform parent, bool instantiateInWorldSpace = false) {
-            Entity entity = CreateEntity();
-            GameObject gameObject = UnityEngine.Object.Instantiate(prefab, parent, instantiateInWorldSpace);
+        public GameObject InstantiateWithGameObject(GameObject prefab, Transform parent, bool instantiateInWorldSpace = false)
+        {
+            var entity = CreateEntity();
+            var gameObject = UnityEngine.Object.Instantiate(prefab, parent, instantiateInWorldSpace);
             gameObject.GetComponent<GameObjectEntity>().SetEntity(entity, this);
             return gameObject;
         }
@@ -80,9 +71,10 @@ namespace ECS {
         /// <summary>
         /// Instantiates Entity and GameObject with it's Components from Prefab!
         /// </summary>
-        public GameObject InstantiateWithGameObject(GameObject prefab, Vector3 position, Quaternion rotation) {
-            Entity entity = CreateEntity();
-            GameObject gameObject = UnityEngine.Object.Instantiate(prefab, position, rotation);
+        public GameObject InstantiateWithGameObject(GameObject prefab, Vector3 position, Quaternion rotation)
+        {
+            var entity = CreateEntity();
+            var gameObject = UnityEngine.Object.Instantiate(prefab, position, rotation);
             gameObject.GetComponent<GameObjectEntity>().SetEntity(entity, this);
             return gameObject;
         }
@@ -90,26 +82,25 @@ namespace ECS {
         /// <summary>
         /// Instantiates Entity and GameObject with it's Components from Prefab!
         /// </summary>
-        public GameObject InstantiateWithGameObject(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent) {
-            Entity entity = CreateEntity();
-            GameObject gameObject = UnityEngine.Object.Instantiate(prefab, position, rotation, parent);
+        public GameObject InstantiateWithGameObject(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
+        {
+            var entity = CreateEntity();
+            var gameObject = UnityEngine.Object.Instantiate(prefab, position, rotation, parent);
             gameObject.GetComponent<GameObjectEntity>().SetEntity(entity, this);
             return gameObject;
         }
-
-
 
         /// <summary>
         /// Instantiates only Entities with there Components from Prefab! 
         /// Wont Instantiate GameObject itself!
         /// Use InstantiateWithGameObject instead.
         /// </summary>
-        public void InstantiateWithGameObject(GameObject prefab, NativeArray<Entity> entityArray, NativeArray<GameObject> gameObjectArray) {
-            if (gameObjectArray.Length != entityArray.Length) {
-                throw new InstantiateGameObjectException("entityArray and gameObjectArray must be the same size");
-            }
+        public void InstantiateWithGameObject(GameObject prefab, NativeArray<Entity> entityArray, NativeArray<GameObject> gameObjectArray)
+        {
+            if (gameObjectArray.Length != entityArray.Length) throw new InstantiateGameObjectException("entityArray and gameObjectArray must be the same size");
 
-            for (int i = 0; i < entityArray.Length; i++) {
+            for (var i = 0; i < entityArray.Length; i++)
+            {
                 entityArray[i] = CreateEntity();
                 gameObjectArray[i] = UnityEngine.Object.Instantiate(prefab);
                 gameObjectArray[i].GetComponent<GameObjectEntity>().SetEntity(entityArray[i], this);
@@ -117,45 +108,57 @@ namespace ECS {
         }
     }
 
-#if (UNITY_EDITOR && ECS_DEBUG)
-    public partial class UnityEntityManager : EntityManager {
 
-        private List<EntityInfo> entityInfoList = new List<EntityInfo>();
+
+#if (UNITY_EDITOR && ECS_DEBUG)
+    public partial class UnityEntityManager : EntityManager
+    {
+        List<EntityInfo> _entityInfoList = new List<EntityInfo>();
 
         public int TotalEntities { get { return _entities.Count; } }
         public int TotalComponentTypes { get { return _components.Count; } }
 
-        public List<EntityInfo> EntityList { get { return entityInfoList; } }
+        public List<EntityInfo> EntityList { get { return _entityInfoList; } }
 
-        public override Entity CreateEntity() {
-            Entity entity = base.CreateEntity();
-            entityInfoList.Add(entity);
+        public override Entity CreateEntity()
+        {
+            var entity = base.CreateEntity();
+            _entityInfoList.Add(entity);
             return entity;
         }
-        public override void DestroyEntity(Entity entity) {
+        public override void DestroyEntity(Entity entity)
+        {
             base.DestroyEntity(entity);
-            entityInfoList.Remove(entity);
+            _entityInfoList.Remove(entity);
         }
     }
-    
-    public class EntityInfo : IEquatable<Entity> {
-        public static implicit operator EntityInfo(Entity entity) {
+
+
+
+    public class EntityInfo : IEquatable<Entity>
+    {
+        public static implicit operator EntityInfo(Entity entity)
+        {
             return new EntityInfo(entity);
         }
-        public static implicit operator Entity(EntityInfo entityInfo) {
+
+        public static implicit operator Entity(EntityInfo entityInfo)
+        {
             return entityInfo._entity;
         }
 
-        private readonly Entity _entity;
+        readonly Entity _entity;
         public bool expanded;
 
         public string Name { get; set; }
 
-        public EntityInfo(Entity entity) {
+        public EntityInfo(Entity entity)
+        {
             _entity = entity;
         }
 
-        public bool Equals(Entity other) {
+        public bool Equals(Entity other)
+        {
             return _entity.Equals(other);
         }
     }

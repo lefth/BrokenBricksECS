@@ -23,7 +23,7 @@ namespace ECS {
             //}
             float dt = Time.fixedDeltaTime;
             for (int i = 0; i < transformArray.Length; i++) {
-                transformArray[i].transform.rotation *= Quaternion.AngleAxis(rotationSpeedArray[i].speed * dt, Vector3.up);
+                transformArray[i].Transform.rotation *= Quaternion.AngleAxis(rotationSpeedArray[i].speed * dt, Vector3.up);
             }
         }
 	}

@@ -1,55 +1,66 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
-using System.Linq;
-using System;
 #if UNITY_EDITOR
+using System.Collections.Generic;
+using System.Linq;
 using ECS.VisualDebugging;
 #endif
 
-namespace ECS {
-    
-    [InjectableDependency(LifeTime.PerInstance)]
-    public class UnityStandardSystemRoot : UnitySystemRoot<UnityEntityManager>  { }
 
-    public partial class UnitySystemRoot<TEntityManager> : SystemRoot<TEntityManager> where TEntityManager : UnityEntityManager {
-        protected override void OnError(Exception ex) {
+
+namespace ECS
+{
+    [InjectableDependency(LifeTime.PerInstance)]
+    public class UnityStandardSystemRoot : UnitySystemRoot<UnityEntityManager> { }
+
+    public partial class UnitySystemRoot<TEntityManager> : SystemRoot<TEntityManager> where TEntityManager : UnityEntityManager
+    {
+        protected override void OnError(Exception ex)
+        {
             Debug.LogError(ex.Message + "  " + ex.StackTrace);
         }
     }
 
+
+
 #if (UNITY_EDITOR && ECS_DEBUG)
-
     [InjectableDependency(LifeTime.PerInstance)]
-    public partial class UnitySystemRoot<TEntityManager> : SystemRoot<TEntityManager> where TEntityManager : UnityEntityManager {
-        
-        private readonly Dictionary<string, DebugSystems> _componentSystemList = new Dictionary<string, DebugSystems>();
+    public partial class UnitySystemRoot<TEntityManager> : SystemRoot<TEntityManager> where TEntityManager : UnityEntityManager
+    {
+        readonly Dictionary<string, DebugSystems> _componentSystemList = new Dictionary<string, DebugSystems>();
+        DebugSystems _rootDebugSystems;
 
-        private DebugSystems _rootDebugSystems;
-        public UnitySystemRoot() {
+        public UnitySystemRoot()
+        {
             _rootDebugSystems = new DebugSystems("Systems");
         }
-        public override void AddSystem<TComponentSystem>() {
-            TComponentSystem componentSystem = InjectionManager.CreateObject<TComponentSystem>();           
+
+        public override void AddSystem<TComponentSystem>()
+        {
+            var componentSystem = InjectionManager.CreateObject<TComponentSystem>();
             HandleTupleInjection(componentSystem);
             AddToDebugSystem(componentSystem);
         }
 
-        public override void AddSystem(ComponentSystem system) {
+        public override void AddSystem(ComponentSystem system)
+        {
             InjectionManager.ResolveDependency(system);
             HandleTupleInjection(system);
             AddToDebugSystem(system);
         }
 
-        private void AddToDebugSystem(ComponentSystem system) {
-            string groupName = GetGroupNameFromSystem(system.GetType());
-            if (string.IsNullOrEmpty(groupName)) {
+        void AddToDebugSystem(ComponentSystem system)
+        {
+            var groupName = GetGroupNameFromSystem(system.GetType());
+            if (string.IsNullOrEmpty(groupName))
+            {
                 _rootDebugSystems.AddSystem(system);
                 return;
             }
 
             DebugSystems debugSystems;
-            if (!_componentSystemList.TryGetValue(groupName, out debugSystems)) {
+            if (!_componentSystemList.TryGetValue(groupName, out debugSystems))
+            {
                 debugSystems = new DebugSystems(groupName);
                 _rootDebugSystems.AddSystem(debugSystems);
                 _componentSystemList.Add(groupName, debugSystems);
@@ -57,39 +68,45 @@ namespace ECS {
             debugSystems.AddSystem(system);
         }
 
-        private static string GetGroupNameFromSystem(Type systemType) {
+        static string GetGroupNameFromSystem(Type systemType)
+        {
 
             DebugSystemGroupAttribute debugSystemGroupAttribute = systemType
                 .GetCustomAttributes(typeof(DebugSystemGroupAttribute), false)
                 .Cast<DebugSystemGroupAttribute>().FirstOrDefault();
 
-            if (debugSystemGroupAttribute == null) {
+            if (debugSystemGroupAttribute == null)
+            {
                 return "";
             }
             return debugSystemGroupAttribute.Group;
         }
 
-        public override void RemoveSystem(ComponentSystem system) {
+        public override void RemoveSystem(ComponentSystem system)
+        {
             DebugSystems debugSystems;
-            string groupName = GetGroupNameFromSystem(system.GetType());
-            if (!_componentSystemList.TryGetValue(groupName, out debugSystems)) {
-                return;
+            var groupName = GetGroupNameFromSystem(system.GetType());
+            if (_componentSystemList.TryGetValue(groupName, out debugSystems))
+            {
+                _rootDebugSystems.RemoveSystem(system);
+                debugSystems.RemoveSystem(system);
+                IComponentSystemSetup systemSetup = system;
+                systemSetup.RemoveAllGroups();
             }
-            _rootDebugSystems.RemoveSystem(system);
-            debugSystems.RemoveSystem(system);
-            IComponentSystemSetup systemSetup = system;
-            systemSetup.RemoveAllGroups();
         }
 
-        public override void Start() {
+        public override void Start()
+        {
             _rootDebugSystems.OnStart();
         }
 
-        public override void Update() {
+        public override void Update()
+        {
             _rootDebugSystems.OnUpdate();
         }
 
-        public override void FixedUpdate() {
+        public override void FixedUpdate()
+        {
             _rootDebugSystems.OnFixedUpdate();
         }
     }

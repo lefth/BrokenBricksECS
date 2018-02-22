@@ -8,34 +8,32 @@ using UnityEngine.Events;
 
 namespace ECS
 {
+    [AddComponentMenu("ECS/Entity")]
     public class GameObjectEntity : MonoBehaviour, IEntityRemovedEventListener, IComponentAddedToEntityEventListener, IComponentRemovedFromEntityEventListener
     {
 #if !UNITY_EDITOR
-        static readonly Type editorOnlyAttributeType = typeof(EditorOnlyAttribute);
+        static readonly Type _editorOnlyAttributeType = typeof(EditorOnlyAttribute);
 #endif
-        public int id;
-        public bool autoAddECSComponents = true;
+        public int Id;
+        public bool AutoAddECSComponents = true;
 
         Entity _entity;
         EntityManager _entityManager;
 
-        Dictionary<Type, Type> cachedComponentWrapperType = new Dictionary<Type, Type>();
+        Dictionary<Type, Type> _cachedComponentWrapperType = new Dictionary<Type, Type>();
         Dictionary<Type, ComponentWrapper> _componentWrapperMap = new Dictionary<Type, ComponentWrapper>();
 
         public bool IsInitialized { get; private set; }
         public Entity Entity { get { return _entity; } }
         public EntityManager EntityManager { get { return _entityManager; } }
 
-        public UnityEvent onInitialized;
+        public UnityEvent OnInitialized;
 
-        Dictionary<Type, ComponentWrapper> componentsToDelete = new Dictionary<Type, ComponentWrapper>();
+        Dictionary<Type, ComponentWrapper> _componentsToDelete = new Dictionary<Type, ComponentWrapper>();
 
         void AddECSComponents()
         {
-            if (!autoAddECSComponents || IsInitialized)
-            {
-                return;
-            }
+            if (!AutoAddECSComponents || IsInitialized) return;
 
             if (!gameObject.GetComponent<ECSTransform>())
             {
@@ -61,6 +59,12 @@ namespace ECS
                 ecsColliders.hideFlags = HideFlags.HideInInspector;
             }
 
+            if (gameObject.GetComponent<CapsuleCollider>() && !gameObject.GetComponent<ECSCapsuleColliders>())
+            {
+                var ecsCapsuleColliders = gameObject.AddComponent<ECSCapsuleColliders>();
+                ecsCapsuleColliders.hideFlags = HideFlags.HideInInspector;
+            }
+
             if (gameObject.GetComponent<CharacterController>() && !gameObject.GetComponent<ECSCharacterController>())
             {
                 var ecsCharacterController = gameObject.AddComponent<ECSCharacterController>();
@@ -76,7 +80,7 @@ namespace ECS
                 return;
             }
 
-            id = entity.Id;
+            Id = entity.Id;
             _componentWrapperMap.Clear();
             _entity = entity;
             _entityManager = entityManager;
@@ -86,17 +90,16 @@ namespace ECS
             entityManager.SubscribeOnComponentRemovedFromEntity(entity, this);
 
             AddECSComponents();
+
             ComponentWrapper[] componentWrapper = GetComponents();
             for (int i = 0; i < componentWrapper.Length; i++)
             {
                 _componentWrapperMap.Add(componentWrapper[i].ComponentType, componentWrapper[i]);
                 componentWrapper[i].Initialize(entity, entityManager);
             }
+
             IsInitialized = true;
-            if (onInitialized != null)
-            {
-                onInitialized.Invoke();
-            }
+            if (OnInitialized != null) OnInitialized.Invoke();
         }
 
         public void OnEntityRemoved(object sender, Entity entity)
@@ -109,33 +112,30 @@ namespace ECS
             Type componentType = typeof(TComponent);
             if (_componentWrapperMap.ContainsKey(componentType))
             {
-                if (componentsToDelete.ContainsKey(componentType))
-                {
-                    componentsToDelete.Remove(componentType);
-                }
+                if (_componentsToDelete.ContainsKey(componentType)) _componentsToDelete.Remove(componentType);
                 return;
             }
 
             Type componentWrapperType = null;
-            if (cachedComponentWrapperType.ContainsKey(componentType))
+            if (_cachedComponentWrapperType.ContainsKey(componentType))
             {
-                componentWrapperType = cachedComponentWrapperType[componentType];
+                componentWrapperType = _cachedComponentWrapperType[componentType];
             }
             else
             {
                 componentWrapperType = componentType.Assembly.GetTypes()
                 .Where(field => field.BaseType != null && field.BaseType.GetGenericArguments().Where(genericArgType => genericArgType == componentType).Any())
                 .FirstOrDefault();
-                cachedComponentWrapperType.Add(componentType, componentWrapperType);
+                _cachedComponentWrapperType.Add(componentType, componentWrapperType);
             }
 
             if (componentWrapperType != null)
             {
 
 #if !UNITY_EDITOR
-               if (componentWrapperType.GetCustomAttributes(editorOnlyAttributeType, true).Any()) return;
+               if (componentWrapperType.GetCustomAttributes(_editorOnlyAttributeType, true).Any()) return;
 #endif
-                ComponentWrapper componentWrapper = (ComponentWrapper)gameObject.AddComponent(componentWrapperType);
+                var componentWrapper = (ComponentWrapper)gameObject.AddComponent(componentWrapperType);
                 _componentWrapperMap.Add(componentType, componentWrapper);
             }
         }
@@ -145,21 +145,21 @@ namespace ECS
             ComponentWrapper componentWrapper;
             if (_componentWrapperMap.TryGetValue(componentType, out componentWrapper))
             {
-                if (componentWrapper.enabled && !componentsToDelete.ContainsKey(componentType))
+                if (componentWrapper.enabled && !_componentsToDelete.ContainsKey(componentType))
                 {
-                    componentsToDelete.Add(componentType, componentWrapper);
+                    _componentsToDelete.Add(componentType, componentWrapper);
                 }
             }
         }
 
         private void LateUpdate()
         {
-            foreach (KeyValuePair<Type, ComponentWrapper> pair in componentsToDelete)
+            foreach (KeyValuePair<Type, ComponentWrapper> pair in _componentsToDelete)
             {
                 Destroy(pair.Value);
                 _componentWrapperMap.Remove(pair.Key);
             }
-            componentsToDelete.Clear();
+            _componentsToDelete.Clear();
         }
 
         private void OnDestroy()
