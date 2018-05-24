@@ -1,0 +1,6 @@
+{
+    "name": "ECS-Examples",
+    "references": ["ECS"],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}
