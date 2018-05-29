@@ -1,5 +1,5 @@
 {
-    "name": "ECS.Unity.Editor",
+    "name": "ECS.Unity.VisualDebugging.Editor",
     "references": [
         "ECS"
     ],
