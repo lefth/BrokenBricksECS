@@ -17,7 +17,7 @@ namespace ECS
     {
         protected override void OnError(Exception ex)
         {
-            Debug.LogError(ex.Message + "  " + ex.StackTrace);
+			Debug.LogException(ex);
         }
     }
 
