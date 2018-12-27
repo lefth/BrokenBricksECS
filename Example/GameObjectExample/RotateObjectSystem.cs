@@ -10,9 +10,9 @@ namespace ECS {
 		// if you define multiple ComponentArrays with the [InjectTuple] tag
 		// you will only receive those entities with both Components
 		[InjectTuple]
-		ComponentArray<RotationSpeed> rotationSpeedArray;	
+		ComponentArray<RotationSpeed> rotationSpeedArray = null;
         [InjectTuple]
-		ComponentArray<TransformComponent> transformArray;
+        ComponentArray<TransformComponent> transformArray = null;
 
 
         // Use this for standard unity update function

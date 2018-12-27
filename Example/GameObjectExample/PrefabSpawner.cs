@@ -9,7 +9,7 @@ namespace ECSExample.GameObjectExample {
         public Transform[] spawnPoints;
 
         [InjectDependency]
-        private UnityEntityManager _entityManager;
+        private UnityEntityManager _entityManager = null;
 
         // Use this for initialization
         void Start() {

@@ -7,9 +7,9 @@ namespace ECSExample.Beginner
     [DebugSystemGroup("Update")]
     class UpdateFloatSystem : ComponentSystem
     {
-        [InjectDependency] UnityEntityManager _entityManager;
+        [InjectDependency] UnityEntityManager _entityManager = null;
 
-        [InjectTuple] ComponentArray<FloatComponent> _floats;
+        [InjectTuple] ComponentArray<FloatComponent> _floats = null;
 
         public override void OnUpdate()
         {

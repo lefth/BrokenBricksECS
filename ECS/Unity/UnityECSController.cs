@@ -9,8 +9,8 @@ namespace ECS
         where TSystemRoot : UnitySystemRoot<TEntityManager>
         where TEntityManager : UnityEntityManager
     {
-        [InjectDependency] TEntityManager _entityManager;
-        [InjectDependency] TSystemRoot _systemRoot;
+        [InjectDependency] TEntityManager _entityManager = null;
+        [InjectDependency] TSystemRoot _systemRoot = null;
 
         public void AddSystem(ComponentSystem componentSystem)
         {

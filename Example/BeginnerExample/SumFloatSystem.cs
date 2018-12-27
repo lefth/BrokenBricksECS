@@ -5,7 +5,7 @@ namespace ECSExample.Beginner {
     class SumFloatSystem : ComponentSystem {
 
         [InjectTuple]
-        ComponentArray<FloatComponent> floats;
+        ComponentArray<FloatComponent> floats = null;
         public override void OnUpdate() {
             float sum = 0;
             for (int i = 0; i < floats.Length; i++) {
